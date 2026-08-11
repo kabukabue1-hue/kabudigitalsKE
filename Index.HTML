@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — KABU DIGITALS Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/admin/admin.css" />
+  <style>
+    .shell { max-width: 1180px; margin-inline: auto; padding: 1.5rem; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
+    .topbar__logo { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; }
+    .topbar__logo span { color: var(--accent-1); }
+    .topbar__user { display: flex; align-items: center; gap: .9rem; font-size: .85rem; color: var(--text-secondary); }
+
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.75rem; }
+    .stat-box { border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius-md); padding: 1.1rem 1.3rem; }
+    .stat-box__num { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; display: block; }
+    .stat-box__label { font-size: .8rem; color: var(--text-muted); }
+
+    .toolbar { display: flex; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+    .toolbar input, .toolbar select {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: .6rem .9rem; color: var(--text-primary); font-size: .85rem;
+    }
+    .toolbar input { flex: 1; min-width: 180px; }
+
+    table { width: 100%; border-collapse: collapse; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+    thead { background: var(--bg-elevated); }
+    th, td { text-align: left; padding: .8rem 1rem; font-size: .85rem; border-bottom: 1px solid var(--border); }
+    th { color: var(--text-muted); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+    tbody tr { cursor: pointer; transition: background .15s ease; }
+    tbody tr:hover { background: var(--surface-strong); }
+    tbody tr:last-child td { border-bottom: none; }
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+
+    .pagination { display: flex; justify-content: center; gap: .6rem; margin-top: 1.25rem; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,.6);
+      display: none; align-items: center; justify-content: center; padding: 1.5rem; z-index: 50;
+    }
+    .modal-backdrop.is-open { display: flex; }
+    .modal {
+      width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto;
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1.75rem;
+    }
+    .modal__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+    .modal__close { background: none; border: none; color: var(--text-muted); font-size: 1.3rem; cursor: pointer; line-height: 1; }
+    .modal dl { display: grid; grid-template-columns: 110px 1fr; gap: .5rem .75rem; font-size: .88rem; margin-bottom: 1rem; }
+    .modal dt { color: var(--text-muted); }
+    .modal dd { margin: 0; }
+    .modal__details { white-space: pre-wrap; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .9rem; font-size: .88rem; margin-bottom: 1.25rem; }
+    .modal__actions { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+
+    @media (max-width: 800px) {
+      .stat-row { grid-template-columns: repeat(2, 1fr); }
+      table, thead, tbody, tr { display: block; }
+      thead { display: none; }
+      tbody tr { border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: .75rem; padding: .5rem .25rem; }
+      td { border-bottom: none; display: flex; justify-content: space-between; gap: 1rem; }
+      td::before { content: attr(data-label); color: var(--text-muted); font-size: .75rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <p class="topbar__logo">KABU<span>DIGITALS</span> <small style="color:var(--text-muted); font-weight:400; font-size:.7rem;">/ admin</small></p>
+      <div class="topbar__user">
+        <span id="userLabel"></span>
+        <button class="btn btn--ghost btn--sm" id="logoutBtn">Log out</button>
+      </div>
+    </div>
+
+    <section class="stat-row" id="statRow" aria-label="Lead summary">
+      <div class="stat-box"><span class="stat-box__num" id="statTotal">—</span><span class="stat-box__label">Total requests</span></div>
+      <div class="stat-box"><span class="stat-box__num" id="statNew">—</span><span class="stat-box__label">New</span></div>
+      <div class="stat-box"><span class="stat-box__num" id="statInProgress">—</span><span class="stat-box__label">In progress</span></div>
+      <div class="stat-box"><span class="stat-box__num" id="statWeek">—</span><span class="stat-box__label">Last 7 days</span></div>
+    </section>
+
+    <div class="toolbar">
+      <input type="search" id="searchInput" placeholder="Search name, company, email or details…" />
+      <select id="statusFilter">
+        <option value="">All statuses</option>
+        <option value="new">New</option>
+        <option value="contacted">Contacted</option>
+        <option value="in_progress">In progress</option>
+        <option value="completed">Completed</option>
+        <option value="archived">Archived</option>
+      </select>
+      <select id="serviceFilter">
+        <option value="">All services</option>
+        <option value="Graphic Design">Graphic Design</option>
+        <option value="Website Development">Website Development</option>
+        <option value="AI & Automation">AI &amp; Automation</option>
+        <option value="Digital Solution">Digital Solution</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Service</th>
+          <th>Budget</th>
+          <th>Status</th>
+          <th>Received</th>
+        </tr>
+      </thead>
+      <tbody id="leadsBody"></tbody>
+    </table>
+    <p class="empty-state" id="emptyState" hidden>No project requests match these filters yet.</p>
+
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- Lead detail modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal__head">
+        <h2 id="modalTitle" style="font-family:var(--font-display); font-size:1.15rem;">Project request</h2>
+        <button class="modal__close" id="modalClose" aria-label="Close">&times;</button>
+      </div>
+      <dl id="modalFields"></dl>
+      <div class="modal__details" id="modalDetails"></div>
+      <div class="modal__actions">
+        <select id="statusSelect">
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="in_progress">In progress</option>
+          <option value="completed">Completed</option>
+          <option value="archived">Archived</option>
+        </select>
+        <div style="display:flex; gap:.6rem;">
+          <button class="btn btn--danger btn--sm" id="deleteBtn">Delete</button>
+          <button class="btn btn--primary btn--sm" id="saveStatusBtn">Save status</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/admin/config.js"></script>
+  <script src="/admin/dashboard.js"></script>
+</body>
+</html>

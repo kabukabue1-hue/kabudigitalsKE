@@ -1,0 +1,38 @@
+# Backend
+
+The backend is an Express API hosted by `backend/Server.js`. It also serves the public `frontend/` directory and the admin dashboard.
+
+## Local setup
+
+From the repository root:
+
+```powershell
+npm install
+$env:JWT_SECRET='local-development-secret'
+$env:ADMIN_EMAIL='admin@example.com'
+$env:ADMIN_PASSWORD='change-this-password'
+npm start
+```
+
+The API runs at `http://localhost:4000`. The admin login is at `http://localhost:4000/admin/login.html`.
+
+## Environment variables
+
+- `PORT` - provided by Render; defaults to `4000`
+- `JWT_SECRET` - required signing secret
+- `ADMIN_EMAIL` and `ADMIN_PASSWORD` - initial admin credentials
+- `ADMIN_NAME` - optional display name
+- `ALLOWED_ORIGINS` - comma-separated allowed browser origins
+- `DB_PATH` - optional SQLite path; Render sets it to its persistent disk
+
+## API
+
+- `GET /api/health`
+- `POST /api/leads`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `GET /api/leads` and `/api/leads/stats` for authenticated admins
+- `GET`, `PATCH`, and `DELETE /api/leads/:id` for authenticated admins
+
+The root `render.yaml` is the only deployment configuration. It deploys the website and backend together and creates the first admin account on startup.
