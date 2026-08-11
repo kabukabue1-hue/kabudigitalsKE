@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: kabu-digitals
+    runtime: node
+    plan: starter
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        value: KABU Admin
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: DB_PATH
+        value: /opt/render/project/src/backend/data/kabu.sqlite
+    disk:
+      name: kabu-data
+      mountPath: /opt/render/project/src/backend/data
+      sizeGB: 1

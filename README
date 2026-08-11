@@ -1,10 +1,20 @@
-# Backend
+# KABU DIGITALS
 
-The backend is an Express API hosted by `backend/Server.js`. It also serves the public `frontend/` directory and the admin dashboard.
+KABU DIGITALS is a static website with an Express backend and SQLite lead dashboard.
 
-## Local setup
+## Deploy on Render
 
-From the repository root:
+Deploy the repository with **New -> Blueprint**. Render uses the root `render.yaml`.
+
+The single web service serves both the public website and the API:
+
+- Website: `https://your-service.onrender.com/`
+- Health check: `https://your-service.onrender.com/api/health`
+- Admin login: `https://your-service.onrender.com/admin/login.html`
+
+During Blueprint setup, provide `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ALLOWED_ORIGINS`. Set `ALLOWED_ORIGINS` to the exact Render service URL, including `https://`. `JWT_SECRET` is generated automatically. The blueprint uses a persistent disk for SQLite, so it uses Render's Starter plan.
+
+## Local development
 
 ```powershell
 npm install
@@ -14,25 +24,12 @@ $env:ADMIN_PASSWORD='change-this-password'
 npm start
 ```
 
-The API runs at `http://localhost:4000`. The admin login is at `http://localhost:4000/admin/login.html`.
+Open `http://localhost:4000/` for the website or `http://localhost:4000/admin/login.html` for the dashboard.
 
-## Environment variables
+## Project layout
 
-- `PORT` - provided by Render; defaults to `4000`
-- `JWT_SECRET` - required signing secret
-- `ADMIN_EMAIL` and `ADMIN_PASSWORD` - initial admin credentials
-- `ADMIN_NAME` - optional display name
-- `ALLOWED_ORIGINS` - comma-separated allowed browser origins
-- `DB_PATH` - optional SQLite path; Render sets it to its persistent disk
+- `frontend/` - public HTML, CSS, and JavaScript
+- `backend/` - Express API, admin UI, and SQLite database access
+- `render.yaml` - the only deployment blueprint
 
-## API
-
-- `GET /api/health`
-- `POST /api/leads`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
-- `GET /api/leads` and `/api/leads/stats` for authenticated admins
-- `GET`, `PATCH`, and `DELETE /api/leads/:id` for authenticated admins
-
-The root `render.yaml` is the only deployment configuration. It deploys the website and backend together and creates the first admin account on startup.
+The contact form posts to the same origin in production. If the API is unavailable, it opens a pre-filled email fallback. Keep `.env` and database files out of version control.
