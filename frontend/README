@@ -1,0 +1,7 @@
+# Frontend
+
+The public website is plain HTML, CSS, and JavaScript in this directory. It is served by the backend in production, so no build command is required.
+
+For local development, run `npm start` from the repository root and open `http://localhost:4000/`.
+
+The contact form posts to the same origin in production. If the API is unavailable, `java.js` opens a pre-filled email fallback.
